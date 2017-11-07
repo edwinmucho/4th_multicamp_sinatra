@@ -2,6 +2,8 @@ require 'uri'
 require 'sinatra'
 require 'httparty'
 require 'nokogiri'
+require 'date'
+require 'csv'
 
 get '/' do  # '/' -> simple routing
     #"Hello Sinatra~"
@@ -58,5 +60,31 @@ get '/lolsearch' do
     @lose = src.css('#SummonerLayoutContent > div.tabItem.Content.SummonerLayoutContent.summonerLayout-summary > div.SideContent > div.TierBox.Box > div.SummonerRatingMedium > div.TierRankInfo > div.TierInfo > span.WinLose > span.losses')
     @name = params[:userName]
     
-    erb :lolsearch
+    # Text File 로 검색 내역 저장.
+    # File.open("log.txt", "a+") do |f|
+    #     f.write("#{@name}, #{@win.text}, #{@lose.text} " + Time.now.to_s + "\n")
+    # end
+    
+    CSV.open("log.csv","a+") do |csv|
+    
+        csv << [@name, @win.text, @lose.text, Time.now.to_s]
+    
+    end
+    
+    erb :lolsearch  # 마지막에 위치해 있는것이 좋음.
+
+end
+
+
+get '/log' do
+    @table=""
+    CSV.foreach("log.csv") do |row|
+        @table+="<tr>"
+        row.each do |data|
+           @table +="<td> #{data}</td>" 
+        end
+        @table+="</tr>"
+    end
+    
+    erb :log
 end
